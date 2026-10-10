@@ -27,7 +27,7 @@
 | `mtr.log`, `ping_result.txt` | Connectivity tests from the PBX (ping to 8.8.8.8) | (included whole) |
 | `dialplan.txt` | DID / inbound routing rules | — |
 | `public_ip` | PBX's public IP as seen externally | — |
-| `reports/report_*.json` | User-triggered reports (dialling 77777) | — |
+| `reports/report_*.json` | User-triggered reports (dialling the report code, often 77777) | — |
 
 Pcaps rotate (`.pcap0`, `.pcap1`…). If the capture mode was switched between siponly and siprtp, old files from the other mode can linger for weeks. The report flags these as anomalous.
 
@@ -98,7 +98,7 @@ Pcaps rotate (`.pcap0`, `.pcap1`…). If the capture mode was switched between s
 - `Unknown context`, `No such extension`, `Jump to ... failed`: dialplan misconfiguration
 - `Unable to create channel`, `Congestion`, `CHANUNAVAIL`: destination/trunk unavailable
 - `Hangup cause` values: 16 = normal clearing, 17 = busy, 19 = no answer, 21 = rejected, 34 = no circuit available, 38 = network out of order, 127 = interworking/unspecified
-- Calls to **77777**: the user dialled the "report a problem" code, which marks when they noticed the issue
+- Calls into the **`Autotrace_WEB`** dialplan: the user dialled the report code (a pilot code set per PBX, often `77777`), which marks when they noticed the issue
 
 **authorization.log**
 - Repeated failures for one user = wrong saved password on a device. Failures for many usernames from one IP = brute-force attempt (cross-check IPTABLES).

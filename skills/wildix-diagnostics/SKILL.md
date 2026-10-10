@@ -19,7 +19,7 @@ The archive is usually in the folder the user is working in, or a path they give
 
 ## Step 2: Gather only what's missing
 
-Read the user's message first, since they often give everything up front. Also check the archive for **user reports** before asking anything. When a user dials 77777 / uses "report a problem", the archive includes `reports/report_<ext>_<date>_<time>.json` with the extension, the PBX-local time, and the user's own description of the problem. A quick look works without extracting:
+Read the user's message first, since they often give everything up front. Also check the archive for **user reports** before asking anything. When a user dials the PBX's report code (the pilot code that jumps to the `Autotrace_WEB` dialplan; often `77777`, but each PBX picks its own), the archive includes `reports/report_<ext>_<date>_<time>.json` with the extension, the PBX-local time, and the user's own description of the problem. A quick look works without extracting:
 
 ```bash
 python -c "import tarfile,sys; t=tarfile.open(sys.argv[1]); [print(m.name, t.extractfile(m).read().decode()) for m in t if '/reports/' in m.name and m.isfile()]" "<archive>"
@@ -77,7 +77,7 @@ Then check the problem categories below.
 - **Call setup**: 4xx/5xx/6xx responses, CANCEL before answer, missing ACK after 200 OK (call drops at ~32 s), no 180/183 ringing
 - **Audio/RTP**: 200 OK with no RTP afterwards, a stream in only one direction (one-way audio), RTP sent to a private IP from the SDP (NAT), codec mismatch between offer and answer, high estimated loss
 - **Network**: IPTABLES DROP lines in wms.log (source IPs, frequency), ping/MTR loss or latency. A mid-path MTR hop showing 100% loss while later hops respond is usually just ICMP rate-limiting, not a fault.
-- **Dialplan/routing**: callweaver "unknown context", "no such extension", jump failures. Calls to extension 77777 mean the user triggered a report at that moment, so their timestamp marks when they noticed the problem.
+- **Dialplan/routing**: callweaver "unknown context", "no such extension", jump failures. A call that enters the `Autotrace_WEB` dialplan (dialled as the report code, often `77777`; ask the user if you can't tell which code the PBX uses) means the user triggered a report at that moment, so its timestamp marks when they noticed the problem.
 - **System health**: one error repeating at high frequency, anomalously old pcap files (flagged in the report header), public IP in the archive vs. IPs seen in SIP Via/Contact (NAT/SIP ALG problems)
 
 ## Step 5: Present findings

@@ -28,7 +28,27 @@ Analyzes a Wildix autotrace archive to find the cause of dropped or failed calls
 **Required**
 - **A Diagnostics Hub / autotrace archive** (`autotrace_logs-*.tar.gz`) covering the time of the incident.
 - **A description of the problem**: when it happened (date, approximate time, and the timezone you're quoting), plus the extension, caller ID or user involved when you have them.
-  - The easiest way to get both is for the affected user to dial **77777** ("report a problem") right after the issue. The archive then contains `reports/report_<ext>_<date>_<time>.json` with their extension, the PBX-local time and their own description. The skill reads it before asking you anything.
+  - The easiest way to get both is for the affected user to dial the PBX's **report code** (e.g. `77777`) right after the issue. The archive then contains `reports/report_<ext>_<date>_<time>.json` with their extension, the PBX-local time and their own description. The skill reads it before asking you anything.
+  - The report code only works once Dialplan report is set up on the PBX (see [Setting up dial-code user reports](#setting-up-dial-code-user-reports)).
+
+#### Setting up dial-code user reports
+
+Dialplan report lets users file a report from their deskphone.
+
+1. **Install Dialplan report.** In **Diagnostics Hub → Autotrace**, install the **Dialplan report** card; it shows **Installed** when done. This adds an `Autotrace_WEB` dialplan to the Dialplan tab in WMS. Nothing else needs changing if the PBX has at least one **Premium** subscription plan, which provides the text-to-speech used for the prompts.
+2. **Add a report code.** Go to **WMS → Dialplan** and select the dialplan regular users use for outbound calls. Then:
+   1. Create a pilot code that users will dial to file a report (e.g. `77777`).
+   2. Give it a **Jump to** application that jumps to the `Autotrace_WEB` dialplan, with `report` as the dialled number.
+3. **No Premium plan?** Then the prompt can't be generated with text-to-speech. Record an audio file and put it in step 2 of the `Autotrace_WEB` dialplan.
+
+Dialplan report supports English, English-US, French, Italian, German, Spanish and Spanish-US.
+
+The same **Diagnostics Hub → Autotrace** page controls what goes into an archive. Turn on what you need *before* the problem happens again:
+- **PCAP trace**: set it to **SIP+RTP** for audio problems. SIP-only captures can't show whether media flowed.
+- **Callweaver logging**: shows what the PBX did with each call (`cw.log`).
+- **Authorization logging**: needed for registration and authentication failures (`authorization.log`).
+
+The skill recognises report calls by their jump into `Autotrace_WEB`, whatever code you pick. Telling Claude your code still helps it spot them faster.
 
 **What it does.** `wildix_analyzer.py` detects the PBX timezone and filters `wms.log`, `cw.log`, `authorization.log` and the SIP/RTP pcaps to the incident window and the call identifiers. It decodes the pcaps itself, without Wireshark or tshark, into:
 - a SIP ladder
