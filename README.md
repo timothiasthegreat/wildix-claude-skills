@@ -158,7 +158,7 @@ Pass the autotrace or diagnostics output to the parser with `--autotrace`. It pr
 
 ## Installing
 
-The packaged skills are in `dist/`:
+Download the `.skill` files from the [latest release](https://github.com/timothiasthegreat/wildix-claude-skills/releases/latest). The same packages are also in `dist/` on `main`.
 
 - **claude.ai / Claude Desktop:** upload the `.skill` files under **Settings → Capabilities → Skills**.
 - **Claude Code:** unzip each `.skill` into `~/.claude/skills/` (personal) or `<project>/.claude/skills/` (per project). Each package contains a top-level `<skill-name>/` folder.
@@ -191,6 +191,25 @@ python -m unittest discover -s skills/wildix-config-review/tests
 ```
 
 Run the same command with `wildix-config-docs` or `wildix-call-flow-sim` for their tests.
+
+## Releasing
+
+Releases are automated by `.github/workflows/release.yml`. To publish one:
+
+1. Rebuild the packages with `python build_skills.py`, run the tests and commit `dist/`.
+2. Tag and push:
+
+   ```bash
+   git tag -a v1.1.0 -m "v1.1.0" && git push origin v1.1.0
+   ```
+
+The workflow then:
+- runs every skill's tests on Python 3.9 and 3.13
+- rebuilds the packages from the tagged source
+- fails if the committed `dist/` is out of date
+- publishes a GitHub release with the four `.skill` files attached and notes generated from the commits since the last release
+
+A tag with a suffix (`v1.1.0-beta.1`) is published as a pre-release.
 
 ## Contributing
 

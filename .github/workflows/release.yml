@@ -1,0 +1,87 @@
+# Publishes a GitHub release with the packaged skills when a version tag is pushed:
+#   git tag -a v1.2.0 -m "v1.2.0" && git push origin v1.2.0
+# Tests run on the oldest and newest supported Python. The release assets are built here from the
+# tagged source, and the release fails if the committed dist/ packages are out of date.
+name: Release
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+*']
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.9', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Unit tests
+        run: |
+          for t in skills/*/tests; do
+            echo "::group::$t"
+            python -m unittest discover -s "$t" -v
+            echo "::endgroup::"
+          done
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Keep the committed packages for comparison
+        run: mkdir -p /tmp/committed && cp dist/*.skill /tmp/committed/
+
+      - name: Build packages
+        run: python build_skills.py
+
+      - name: Check committed dist/ matches the source
+        # Compares file contents (not zip bytes, which carry timestamps) and ignores CRLF/LF differences
+        # from Windows checkouts. On failure: run `python build_skills.py`, commit dist/, and re-tag.
+        run: |
+          python - <<'EOF'
+          import hashlib, sys, zipfile
+          from pathlib import Path
+
+          def contents(path):
+              with zipfile.ZipFile(path) as z:
+                  return {n: hashlib.sha256(z.read(n).replace(b'\r\n', b'\n')).hexdigest() for n in z.namelist()}
+
+          stale = []
+          for built in sorted(Path('dist').glob('*.skill')):
+              committed = Path('/tmp/committed') / built.name
+              if not committed.exists():
+                  stale.append(f'{built.name}: not committed')
+                  continue
+              a, b = contents(committed), contents(built)
+              stale += [f'{built.name}: {n}' for n in sorted(set(a) | set(b)) if a.get(n) != b.get(n)]
+          if stale:
+              print('Committed dist/ is out of date with the source:\n  ' + '\n  '.join(stale))
+              sys.exit(1)
+          print('dist/ matches the source')
+          EOF
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          prerelease=""
+          case "$TAG" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$TAG" dist/*.skill \
+            --verify-tag \
+            --title "$TAG" \
+            --generate-notes \
+            $prerelease
