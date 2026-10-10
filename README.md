@@ -125,7 +125,12 @@ Autotrace logs are evidence, so the analyzer **minimizes them rather than redact
 - The pcaps are decoded locally, and only the SIP signalling and RTP statistics are written. Audio payloads are never decoded or written to the report.
 - SIP over TLS (port 5061) stays encrypted and isn't decoded.
 
-The filtered report **does** contain phone numbers, IP addresses, user agents and full SIP messages. Those include digest `Authorization` headers, which carry a hash, not the password. If your policy rules that out, review the report before sharing it, or narrow the window and filters.
+- **Digest authentication values are masked.** In the report's SIP messages, the `response`, `nonce`, `cnonce`, `opaque`, `nextnonce` and `rspauth` values in `Authorization`, `Proxy-Authorization`, `WWW-Authenticate`, `Proxy-Authenticate` and `Authentication-Info` headers become `[REDACTED]`.
+  - `username`, `realm`, `uri`, `algorithm` and `qop` stay visible, which is enough to diagnose 401/403/407 loops.
+  - `--no-redact` turns the masking off. Claude is told not to use it unless you ask.
+  - The filtered `.pcap` files are not altered; they're for Wireshark, not for the model.
+
+The filtered report still contains phone numbers, IP addresses, user agents and the rest of each SIP message. If your policy rules that out, review the report before sharing it, or narrow the window and filters.
 
 ### In every case
 
