@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>__TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  --bg:#eef1f4; --surface:#ffffff; --ink:#17212b; --muted:#52606d; --line:#d3dae1;
+  --teal:#0e7c72; --tealbg:#d8efec; --purple:#5a4fcf; --purplebg:#e6e3fa;
+  --amber:#8a5105; --amberbg:#fbebcf; --red:#b3261e; --redbg:#fbe4e2; --blue:#1b5fd1; --bluebg:#dfe9fb; --focus:#1b5fd1;
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Source Sans 3","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11171d; --surface:#1a232c; --ink:#e8edf1; --muted:#9fb0bd; --line:#2f3c47;
+    --teal:#4cc3b6; --tealbg:#123a36; --purple:#a79cff; --purplebg:#2a2650;
+    --amber:#f0b35a; --amberbg:#3a2a0e; --red:#ff8a80; --redbg:#3d1d1b; --blue:#7db0ff; --bluebg:#1a2b47; --focus:#7db0ff;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11171d; --surface:#1a232c; --ink:#e8edf1; --muted:#9fb0bd; --line:#2f3c47;
+  --teal:#4cc3b6; --tealbg:#123a36; --purple:#a79cff; --purplebg:#2a2650;
+  --amber:#f0b35a; --amberbg:#3a2a0e; --red:#ff8a80; --redbg:#3d1d1b; --blue:#7db0ff; --bluebg:#1a2b47; --focus:#7db0ff;
+}
+html{scroll-padding-top:64px;height:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;min-height:100%}
+h1,h2,h3{font-family:var(--display);line-height:1.15;margin:0;font-weight:700;letter-spacing:-0.01em}
+h1{font-size:clamp(1.6rem,4vw,2.3rem)}
+h2{font-size:1.35rem;margin-bottom:.6rem}
+h3{font-size:1.05rem;margin:1.4rem 0 .4rem}
+p{margin:.4rem 0 .8rem;max-width:72ch}
+a{color:var(--teal)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+header.top{padding:22px 0 14px}
+header.top .row{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.sub{color:var(--muted);margin:.35rem 0 0;max-width:70ch}
+.themebtn{font:inherit;font-size:.9rem;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+nav.tabs{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+nav.tabs .wrap{display:flex;gap:2px;overflow-x:auto;scrollbar-width:thin}
+.tab{font:inherit;font-weight:600;color:var(--muted);background:none;border:0;border-bottom:3px solid transparent;padding:12px 14px;cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--teal)}
+main{padding:22px 0 60px}
+.panel[hidden]{display:none}
+.chip{display:inline-block;font-size:.78rem;font-weight:600;padding:1px 8px;border-radius:999px;vertical-align:1px;margin-left:4px;white-space:nowrap}
+.chip.v{background:var(--amberbg);color:var(--amber)}
+.chip.o{background:var(--purplebg);color:var(--purple)}
+.chip.d{background:var(--tealbg);color:var(--teal)}
+.chip.c{background:var(--bluebg);color:var(--blue)}
+.chip.x{background:var(--redbg);color:var(--red)}
+/* simulator */
+.simgrid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:860px){.simgrid{grid-template-columns:1fr}}
+.controls{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+fieldset{border:0;margin:0 0 14px;padding:0}
+fieldset[hidden],.field[hidden],.check[hidden],.radioset[hidden]{display:none}
+legend{font-weight:600;padding:0;margin-bottom:6px;font-size:.95rem}
+.field{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.field label,.check label,.field .lbl2{font-size:.92rem}
+.inline{display:flex;gap:8px}
+.inline .field{flex:1}
+select,input[type="time"]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 8px;width:100%}
+.check{display:flex;gap:8px;align-items:flex-start;margin-bottom:6px}
+.check input{margin-top:5px;accent-color:var(--teal)}
+.radioset{margin-bottom:10px}
+.radios{display:flex;flex-direction:column;gap:4px}
+.radios label{display:flex;gap:8px;align-items:center;font-size:.92rem}
+.radios input{accent-color:var(--teal)}
+.hint{font-size:.82rem;color:var(--muted)}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.pbtn{font:inherit;font-size:.86rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 11px;cursor:pointer}
+.pbtn:hover{border-color:var(--teal)}
+.pbtn[aria-pressed="true"]{border-color:var(--teal);background:var(--tealbg)}
+.result{min-width:0}
+.banner{border-radius:12px;padding:14px 16px;margin-bottom:14px;border:1px solid var(--line);background:var(--surface);border-left:6px solid var(--teal)}
+.banner.vm{border-left-color:var(--amber)}
+.banner.closed{border-left-color:var(--purple)}
+.banner.bad{border-left-color:var(--red)}
+.banner .big{font-family:var(--display);font-size:1.3rem;font-weight:700}
+.banner .small{color:var(--muted);font-size:.93rem;margin-top:2px}
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px;overflow-x:auto}
+.diagram svg{display:block;width:100%;height:auto;min-width:min(100%,var(--minw,0px))}
+.node rect{fill:var(--surface);stroke:var(--line);stroke-width:1.2;transition:fill .2s,stroke .2s}
+.node.chk rect{stroke:var(--purple)}
+.node.hnd rect{stroke:var(--teal)}
+.node.bad rect{stroke:var(--red)}
+.node.start rect{stroke:var(--ink)}
+.node text{fill:var(--ink);font-family:var(--body)}
+.node .t{font-size:14px;font-weight:600}
+.node .s{font-size:12px;fill:var(--muted)}
+.edge{fill:none;stroke:var(--muted);stroke-width:1.4;transition:stroke .2s}
+.elbl{font-size:12px;fill:var(--muted);font-family:var(--body)}
+svg.active .node{opacity:.4}
+svg.active .edge,svg.active .elbl{opacity:.3}
+svg.active .node.on{opacity:1}
+svg.active .node.on rect{fill:var(--tealbg);stroke:var(--teal);stroke-width:2.4}
+svg.active .node.skip{opacity:.8}
+svg.active .node.skip rect{stroke:var(--amber);stroke-dasharray:5 4;stroke-width:2}
+svg.active .edge.on{opacity:1;stroke:var(--teal);stroke-width:2.6}
+svg.active .elbl.on{opacity:1;fill:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.85rem;color:var(--muted);padding:6px 8px 2px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;border:2px solid;margin-right:5px;vertical-align:-1px}
+.trace{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-top:14px}
+.trace ol{margin:.4rem 0 0;padding-left:1.2rem}
+.trace li{margin-bottom:5px}
+.trace li .st{color:var(--muted);font-size:.88rem}
+.flownote{font-size:.9rem;color:var(--muted);margin:0 0 10px}
+/* build */
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px}
+@media (max-width:820px){.cols{grid-template-columns:1fr}}
+table{border-collapse:collapse;width:100%;font-size:.95rem;margin:.4rem 0 1rem;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;background:var(--bg)}
+table.kv th{width:34%}
+tr:last-child td,tr:last-child th{border-bottom:0}
+.tw{overflow-x:auto}
+ol.steps{padding-left:0;list-style:none;counter-reset:s;margin:.6rem 0 1rem}
+ol.steps>li{counter-increment:s;position:relative;padding:8px 10px 8px 44px;margin-bottom:6px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+ol.steps>li::before{content:counter(s);position:absolute;left:10px;top:8px;width:24px;height:24px;border-radius:50%;background:var(--tealbg);color:var(--teal);font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+ol.steps>li.grp{background:var(--bg);border-style:dashed;font-weight:600;padding-left:12px;counter-increment:none}
+ol.steps>li.grp::before{content:"";background:none}
+ul.tight{margin:.3rem 0 1rem;padding-left:1.2rem}
+ul.tight li{margin-bottom:4px}
+code{font-size:.9em;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+/* checklists */
+.progress{height:10px;background:var(--line);border-radius:999px;overflow:hidden;margin:6px 0 4px;max-width:420px}
+.progress>div{height:100%;background:var(--teal);width:0;transition:width .25s}
+.cl h3{margin-top:1.2rem}
+.cl .item{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-bottom:6px}
+.cl .item input{margin-top:5px;accent-color:var(--teal);width:18px;height:18px;flex:none}
+.cl .item.done label{color:var(--muted);text-decoration:line-through}
+.cl .item label{flex:1}
+.resetbtn{font:inherit;font-size:.9rem;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:8px;padding:5px 12px;cursor:pointer;margin-left:10px}
+.note{border-left:4px solid var(--amber);background:var(--amberbg);color:var(--ink);padding:8px 12px;border-radius:0 8px 8px 0;margin:.8rem 0;max-width:80ch}
+footer{color:var(--muted);font-size:.82rem;padding:0 0 30px}
+@media print{nav.tabs,.themebtn,.controls .presets{display:none}.panel[hidden]{display:block}body{background:#fff}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="row">
+    <div>
+      <h1 id="pageTitle"></h1>
+      <p class="sub" id="pageSub"></p>
+    </div>
+    <button class="themebtn" id="themeBtn" type="button">Switch theme</button>
+  </div>
+</div></header>
+
+<nav class="tabs" aria-label="Sections"><div class="wrap" role="tablist" id="tablist">
+  <button class="tab" role="tab" id="t-sim" aria-controls="p-sim" aria-selected="true">Call simulator</button>
+</div></nav>
+
+<main><div class="wrap" id="panels">
+
+<section class="panel" id="p-sim" role="tabpanel" aria-labelledby="t-sim">
+  <div class="simgrid">
+    <div class="controls" id="controls">
+      <h2>Set up a call</h2>
+      <div class="presets" id="presets" aria-label="Quick scenarios"></div>
+    </div>
+    <div class="result">
+      <div class="banner" id="banner" aria-live="polite"><div class="big" id="bigOut"></div><div class="small" id="smallOut"></div></div>
+      <p class="flownote" id="flowNote" hidden></p>
+      <div class="diagram">
+        <div id="svgHost"></div>
+        <div class="legend">
+          <span><i style="border-color:var(--purple)"></i>Check or menu</span>
+          <span><i style="border-color:var(--teal)"></i>Call handling</span>
+          <span><i style="border-color:var(--line)"></i>Message or step</span>
+          <span><i style="border-color:var(--red)"></i>Call ends</span>
+          <span><i style="border-color:var(--teal);background:var(--tealbg)"></i>Path taken</span>
+          <span><i style="border-color:var(--amber);border-style:dashed"></i>Stage skipped</span>
+        </div>
+      </div>
+      <div class="trace"><h3 style="margin-top:0">What happened, step by step</h3><ol id="traceList"></ol></div>
+    </div>
+  </div>
+</section>
+
+__TAB_PANELS__
+
+</div></main>
+<footer><div class="wrap" id="footer"></div></footer>
+
+<script type="application/json" id="flow-spec">__FLOW_SPEC__</script>
+<script>
+(function(){
+  'use strict';
+  var SPEC = JSON.parse(document.getElementById('flow-spec').textContent);
+  var $ = function(id){ return document.getElementById(id); };
+  var DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  var CHK = {timetable:1, 'switch':1, condition:1, decide:1, ivr:1};
+  var HND = {ring:1, queue:1, dial_external:1, voicemail:1, fax:1, park:1};
+  var BAD = {hangup:1, end:1};
+
+  /* ---------- header, tabs, theme ---------- */
+  document.title = SPEC.title;
+  $('pageTitle').textContent = SPEC.title;
+  $('pageSub').textContent = SPEC.subtitle || '';
+  $('footer').textContent = SPEC.footer || '';
+  var tablist = $('tablist');
+  (SPEC.tabs_index || []).forEach(function(t){
+    var b = document.createElement('button');
+    b.className = 'tab'; b.setAttribute('role','tab'); b.id = 't-'+t.id;
+    b.setAttribute('aria-controls','p-'+t.id); b.setAttribute('aria-selected','false');
+    b.textContent = t.label; tablist.appendChild(b);
+  });
+  var tabs = [].slice.call(document.querySelectorAll('.tab'));
+  function show(id){
+    tabs.forEach(function(t){
+      var on = t.id === 't-'+id;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      $('p-'+t.id.slice(2)).hidden = !on;
+    });
+    try{ history.replaceState(null,'','#'+id); }catch(e){}
+  }
+  tabs.forEach(function(t){ t.addEventListener('click', function(){ show(t.id.slice(2)); }); });
+  var h = (location.hash||'').slice(1);
+  if (tabs.some(function(t){ return t.id === 't-'+h; })) show(h);
+  $('themeBtn').addEventListener('click', function(){
+    var r = document.documentElement;
+    var dark = r.getAttribute('data-theme') === 'dark' ||
+      (!r.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    r.setAttribute('data-theme', dark ? 'light' : 'dark');
+  });
+
+  /* ---------- state ---------- */
+  var S = {};
+  var FLOWS = SPEC.flows;
+  var flowIdx = 0;
+  function flow(){ return FLOWS[flowIdx]; }
+  function people(name){ return (SPEC.people||{})[name] || {label:name}; }
+  function plabel(name){ return people(name).label || name; }
+  function mins(t){ var p=(t||'0:0').split(':'); return parseInt(p[0],10)*60 + parseInt(p[1]||'0',10); }
+  function hhmm(m){ var h=Math.floor(m/60), mm=m%60; return (h<10?'0':'')+h+':'+(mm<10?'0':'')+mm; }
+
+  function evalTT(name){
+    var t = (SPEC.timetables||{})[name] || {kind:'manual'};
+    var ov = t.override || [];
+    for (var i=0;i<ov.length;i++){
+      var sw = (SPEC.switches||{})[ov[i].switch], v = S['sw:'+ov[i].switch];
+      var to = (ov[i].map||{})[v];
+      if (to === 'open' || to === 'closed'){
+        var lab = sw ? stateLabel(ov[i].switch, v) : v;
+        return {match: to === 'open', why: 'Switch '+q(ov[i].switch)+' is '+lab+', which forces '+q(name)+' '+(to==='open'?'on':'off')};
+      }
+    }
+    var when = DAYS[S.dow]+' '+S.time;
+    if (t.kind === 'weekly'){
+      var r = (t.hours||{})[String(S.dow)] || [], m = mins(S.time);
+      for (var j=0;j<r.length;j++) if (m >= r[j][0] && m < r[j][1])
+        return {match:true, why: when+' is inside '+q(name)+' ('+hhmm(r[j][0])+' to '+hhmm(r[j][1])+')'};
+      if (t.dates && S['tt:'+name]) return {match:true, why: 'Today matches a date entry in '+q(name)};
+      return {match:false, why: when+' is outside '+q(name)+(r.length ? ' ('+r.map(function(x){return hhmm(x[0])+' to '+hhmm(x[1]);}).join(', ')+' that day)' : ' (no hours that day)')};
+    }
+    var on = !!S['tt:'+name];
+    return {match:on, why: on ? (t.label_on || 'Today matches '+q(name)) : (t.label_off || 'Today is not in '+q(name))};
+  }
+  function q(s){ return '‘'+s+'’'; }
+  function stateLabel(sw, v){
+    var d = (SPEC.switches||{})[sw]; if (!d) return v;
+    for (var i=0;i<d.states.length;i++) if (d.states[i][0] === v) return d.states[i][1];
+    return v;
+  }
+  function ev(x){
+    if (!x) return true;
+    if (x.any) return x.any.some(ev);
+    if (x.all) return x.all.every(ev);
+    if (x.not) return !ev(x.not);
+    if (x['switch']) { var v = S['sw:'+x['switch']]; return Array.isArray(x.is) ? x.is.indexOf(v) > -1 : v === x.is; }
+    if (x.timetable) return evalTT(x.timetable).match;
+    if (x.flag) return !!S['f:'+x.flag];
+    return false;
+  }
+  function evText(x){
+    if (!x) return '';
+    if (x.any) return x.any.map(function(y){ return y.all ? '('+evText(y)+')' : evText(y); }).join(' or ');
+    if (x.all) return x.all.map(function(y){ return y.any ? '('+evText(y)+')' : evText(y); }).join(' and ');
+    if (x.not) return 'not ('+evText(x.not)+')';
+    if (x['switch']) return q(x['switch'])+' is '+[].concat(x.is).map(function(v){return stateLabel(x['switch'],v);}).join('/');
+    if (x.timetable) return q(x.timetable)+' matches';
+    if (x.flag) return ((SPEC.flags||{})[x.flag]||x.flag);
+    return '';
+  }
+
+  function groupMembers(n){
+    var g = n.group ? (SPEC.groups||{})[n.group] : null;
+    var list = n.members || (g ? g.members : []) || [];
+    return list.map(function(m){
+      var name = typeof m === 'string' ? m : m.name, when = typeof m === 'string' ? null : m.when;
+      var inc = ev(when);
+      return {name:name, label:plabel(name), state:S['m:'+name]||'free', included:inc, when:when};
+    });
+  }
+  var STATE_TXT = {free:'free', busy:'on a call', offline:'offline'};
+  function joinNames(a){ return a.length < 2 ? a.join('') : a.slice(0,-1).join(', ')+' and '+a[a.length-1]; }
+
+  /* ---------- node behaviour ---------- */
+  function target(n, b){
+    if (b === 'next') return n.next;
+    var g = n.go || {};
+    if (g[b] !== undefined) return g[b];
+    if (b === 'skipped') return g.no_answer;
+    if (b === 'full') return g.timeout;
+    if (g['*'] !== undefined) return g['*'];
+    return undefined;
+  }
+  function say(n, b, dflt){ return (n.say && n.say[b]) || dflt; }
+
+  var STEP = {
+    start: function(n){ return {b:'next', step: n.step || 'Start', text: n.say_text || (n.title+(n.sub && n.sub.length ? ' ('+n.sub.join('; ')+')' : '')+'.')}; },
+    route: function(n){ return {b:'next', text: 'Matches '+n.title+(n.sub && n.sub.length ? ' ('+n.sub.join('; ')+')' : '')+'.'}; },
+    play: function(n){ return {b:'next', text: say(n,'next', 'Plays '+(n.text ? '“'+n.text+'”' : n.title)+'.')}; },
+    'switch': function(n){
+      var v = S['sw:'+n['switch']];
+      return {b:v, text: say(n, v, 'Switch '+q(n['switch'])+' is '+stateLabel(n['switch'], v)+'.')};
+    },
+    timetable: function(n){
+      var r = evalTT(n.timetable), b = r.match ? 'open' : 'closed';
+      return {b:b, text: say(n, b, r.why+', so the call takes the '+(r.match?'in-hours':'out-of-hours')+' branch.')};
+    },
+    condition: function(n, id){
+      var v = n['if'] ? ev(n['if']) : !!S['c:'+id];
+      var b = v ? 'true' : 'false';
+      return {b:b, text: say(n, b, (n.label || n.title).replace(/[?.]$/, '')+(v ? ': yes.' : ': no.'))};
+    },
+    decide: function(n){
+      var cs = n.cases || [];
+      for (var i=0;i<cs.length;i++){
+        if (cs[i].timetable){
+          var r = evalTT(cs[i].timetable);
+          if (r.match === (cs[i].match !== false)) return {b:cs[i].go, text: cs[i].say || (r.why+'.'), step: cs[i].step};
+          continue;
+        }
+        if (ev(cs[i].when)) return {b:cs[i].go, text: cs[i].say || (evText(cs[i].when)+'.'), step: cs[i].step};
+      }
+      return {b:n['else'], text: n.else_say || 'No case matched.', step: n.else_step};
+    },
+    ring: function(n, id, ctx){
+      var mem = groupMembers(n), inc = mem.filter(function(m){ return m.included; });
+      var out = mem.filter(function(m){ return !m.included; });
+      var free = inc.filter(function(m){ return m.state === 'free'; });
+      var lines = [['Members', (n.group ? q(n.group)+': ' : '')+(inc.length ? inc.map(function(m){ return m.label+' ('+STATE_TXT[m.state]+')'; }).join(', ') : 'nobody')+
+        (out.length ? '. Not included now: '+out.map(function(m){ return m.label+(m.when ? ' (needs '+evText(m.when)+')' : ''); }).join(', ') : '')+'.']];
+      var to = n.timeout ? n.timeout+' s' : 'the ring timeout';
+      if (!free.length){
+        if (n.skip_if_none_free) return {b:'skipped', mark:'skip', pre:lines, text: say(n,'skipped','Nobody is free, so this ring stage is skipped.')};
+        ctx.wait += +n.timeout || 0;
+        return {b:'no_answer', pre:lines, text: say(n,'no_answer','Nobody is free to ring. After '+to+' the call moves on.')};
+      }
+      var names = free.map(function(m){ return m.label; });
+      if (S['pick:'+id] !== false){
+        var who = free[0].label;
+        return {b:'answered', pre:lines, text: 'Rings '+joinNames(names)+(n.strategy ? ' ('+n.strategy+')' : '')+'. '+who+' picks up'+(n.timeout ? ' within '+to : '')+'.',
+          end:{kind:'ok', big: n.answered_text ? n.answered_text.replace('{who}', who) : 'Answered by '+who, small: ctx.wait ? 'Caller waited about '+ctx.wait+' s before this stage, plus up to '+to+' ringing.' : 'Caller hears up to '+to+' of ringing.'}};
+      }
+      ctx.wait += +n.timeout || 0;
+      return {b:'no_answer', pre:lines, text: say(n,'no_answer','Rings '+joinNames(names)+' for '+to+'. Nobody picks up.')};
+    },
+    queue: function(n, id, ctx){
+      var mem = groupMembers(n), inc = mem.filter(function(m){ return m.included; });
+      var free = inc.filter(function(m){ return m.state === 'free'; });
+      var waiting = +S['q:'+id] || 0, max = +n.max_len || 0;
+      var lines = [['Members', (n.group ? q(n.group)+': ' : '')+(inc.length ? inc.map(function(m){ return m.label+' ('+STATE_TXT[m.state]+')'; }).join(', ') : 'nobody')+'.']];
+      if (max && waiting >= max) return {b:'full', pre:lines, text: say(n,'full','The queue already has '+waiting+' callers (max '+max+'), so this caller is not added.')};
+      var pos = 'Caller joins the queue'+(max || waiting ? ' (position '+(waiting+1)+(max ? ' of '+max : '')+')' : '')+(n.music ? ' with '+n.music : '')+'.';
+      if (n.pick !== false && free.length && !waiting && S['pick:'+id] !== false){
+        var who = free[0].label;
+        return {b:'answered', pre:lines, text: pos+' '+(n.strategy ? 'Strategy '+n.strategy+': ' : '')+'rings '+joinNames(free.map(function(m){return m.label;}))+'. '+who+' picks up.',
+          end:{kind:'ok', big:'Answered by '+who, small: ctx.wait ? 'Caller waited about '+ctx.wait+' s before the queue.' : 'Answered from the call group.'}};
+      }
+      if (S['qa:'+id]){
+        return {b:'answered', pre:lines, text: pos+' Someone becomes free and answers'+(n.max_wait ? ' within the '+n.max_wait+' s wait' : '')+'.',
+          end:{kind:'ok', big:'Answered from the queue', small:'Caller waits up to about '+(ctx.wait + (+n.max_wait||0))+' s in total.'}};
+      }
+      if (!n.max_wait){
+        return {b:null, pre:lines, text: pos+' No maximum wait is set, so the caller stays in the queue until someone answers or they hang up.',
+          end:{kind:'closed', big:'Caller keeps waiting in the queue', small:'No max wait on this call group step, so later rules never run.'}};
+      }
+      ctx.wait += +n.max_wait;
+      return {b:'timeout', pre:lines, text: say(n,'timeout', pos+' '+n.max_wait+' s pass with no answer, so the call moves on.')};
+    },
+    ivr: function(n, id, ctx){
+      var k = S['ivr:'+id] || '';
+      if (k && target(n, k) !== undefined) return {b:k, text: say(n, k, (n.text ? 'Menu plays “'+n.text+'”. ' : 'Menu plays. ')+'Caller '+(k.length > 2 ? 'dials ' : 'presses ')+k+'.')};
+      ctx.wait += +n.wait || 0;
+      return {b:'timeout', text: say(n,'timeout', (n.text ? 'Menu plays “'+n.text+'”. ' : 'Menu plays. ')+'No key pressed'+(n.wait ? ' within '+n.wait+' s' : '')+'.')};
+    },
+    dial_external: function(n, id, ctx){
+      var who = n.target || n.title;
+      if (S['ext:'+id]) return {b:'answered', text: say(n,'answered','Dials '+who+(n.trunk ? ' via '+n.trunk : '')+'. They answer and the caller is connected.'),
+        end:{kind:'closed', big: n.answered_text || ('Caller connected to '+who), small: n.answered_small || 'The outbound leg uses '+(n.trunk ? q(n.trunk) : 'a trunk')+'.'}};
+      ctx.wait += +n.timeout || 0;
+      return {b:'no_answer', text: say(n,'no_answer','Dials '+who+'. No answer'+(n.timeout ? ' within about '+n.timeout+' s' : '')+'.')};
+    },
+    park: function(n){ return {b:null, text: n.text || n.title, end:{kind:'closed', big: n.title, small:(n.sub||[]).join(' ')}}; }
+  };
+  function terminal(n){
+    var k = {voicemail:'vm', fax:'vm', forward:'vm', answered:'ok', hangup:'bad', end:'bad'}[n.type] || 'closed';
+    var dflt = {voicemail:'Caller leaves a voicemail'+(n.mailbox ? ' in '+q(n.mailbox) : '')+(n.email ? '. It is emailed to '+n.email : '')+'.',
+      fax:'Fax is received'+(n.email ? ' and emailed to '+n.email : '')+'.', hangup:'The PBX hangs up.', end:n.title+'.', forward:n.title+(n.sub ? ': '+n.sub.join(' ') : '')+'.', answered:'Answered.'}[n.type] || n.title;
+    return {b:null, text: n.text || dflt, end:{kind:n.outcome || k, big: n.banner || n.title, small: n.banner_small || (n.type === 'voicemail' && n.email ? 'Voicemail is emailed to '+n.email+'.' : (n.sub||[]).join(' '))}};
+  }
+
+  function run(){
+    var f = flow(), nodes = {}, edges = {}, trace = [], ctx = {wait:0}, end = null;
+    var cur = f.start, visits = {}, guard = 0;
+    while (cur !== undefined && cur !== null && guard++ < 200){
+      var n = f.nodes[cur];
+      if (!n){ end = {kind:'bad', big:'Broken flow: no node '+cur, small:''}; break; }
+      visits[cur] = (visits[cur]||0) + 1;
+      if (visits[cur] > 2){ trace.push(['Loop','The call loops back to '+q(n.title)+' and cycles until answered or the caller hangs up.']); end = {kind:'bad', big:'The call loops', small:'It returns to '+n.title+'.'}; break; }
+      var r = (STEP[n.type] || terminal)(n, cur, ctx);
+      nodes[cur] = r.mark || 'on';
+      (r.pre||[]).forEach(function(p){ trace.push(p); });
+      trace.push([r.step || n.step || n.title, r.text]);
+      if (r.end){ end = r.end; break; }
+      var nx = target(n, r.b);
+      if (nx === undefined || nx === null){
+        if (r.b !== null){ trace.push(['End','No step follows, so the call ends here.']); end = {kind:'bad', big:'Call ends after '+n.title, small:'Nothing is configured for this branch.'}; }
+        else end = {kind:'closed', big:n.title, small:''};
+        break;
+      }
+      edges[cur+'>'+r.b] = 1;
+      cur = nx;
+    }
+    if (end && end.kind !== 'ok' && ctx.wait && !/wait/i.test(end.small)) end.small = (end.small ? end.small+' ' : '')+'Caller waited about '+ctx.wait+' s first.';
+    draw(nodes, edges, trace, end || {kind:'bad', big:'No outcome', small:''});
+  }
+
+  /* ---------- diagram ---------- */
+  var svgs = [];
+  function el(name, attrs, parent){
+    var e = document.createElementNS(SVGNS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function buildSvg(f, fi){
+    var g = f.geo;
+    var svg = el('svg', {viewBox:'0 0 '+g.w+' '+g.h, role:'img', 'aria-label':'Call flow diagram for '+f.label+'. The path taken in the simulator is highlighted.'});
+    svg.style.setProperty('--minw', Math.min(g.w, 900)+'px');
+    var defs = el('defs', {}, svg);
+    var mk = el('marker', {id:'ah'+fi, viewBox:'0 0 10 10', refX:'8', refY:'5', markerWidth:'6', markerHeight:'6', orient:'auto-start-reverse'}, defs);
+    el('path', {d:'M2 1L8 5L2 9', fill:'none', stroke:'context-stroke', 'stroke-width':'1.5', 'stroke-linecap':'round', 'stroke-linejoin':'round'}, mk);
+    var eg = el('g', {}, svg);
+    g.edges.forEach(function(e, i){
+      var p = el('path', {'class':'edge', d:e.d, 'marker-end':'url(#ah'+fi+')'}, eg);
+      p.dataset.keys = e.keys.join(' ');
+      if (e.label){
+        var t = el('text', {'class':'elbl', x:e.lx, y:e.ly, 'text-anchor':e.anchor || 'start'}, eg);
+        t.textContent = e.label; t.dataset.keys = e.keys.join(' ');
+      }
+    });
+    Object.keys(g.nodes).forEach(function(id){
+      var b = g.nodes[id], n = f.nodes[id];
+      var cls = 'node'+(CHK[n.type] ? ' chk' : HND[n.type] ? ' hnd' : BAD[n.type] ? ' bad' : n.type === 'start' ? ' start' : '');
+      var gg = el('g', {'class':cls}, svg); gg.dataset.id = id;
+      el('rect', {x:b.x, y:b.y, width:b.w, height:b.h, rx:8}, gg);
+      var lines = b.lines, lh = 18, y0 = b.y + b.h/2 - (lines.length-1)*lh/2;
+      lines.forEach(function(l, i){
+        var t = el('text', {'class':l[0], x:b.x + b.w/2, y:y0 + i*lh, 'text-anchor':'middle', 'dominant-baseline':'central'}, gg);
+        t.textContent = l[1];
+      });
+      var tip = el('title', {}, gg); tip.textContent = [n.title].concat(n.sub||[]).concat(n.note ? [n.note] : []).join('\n');
+    });
+    return svg;
+  }
+  function draw(nodes, edges, trace, out){
+    var svg = svgs[flowIdx]; svg.classList.add('active');
+    [].forEach.call(svg.querySelectorAll('.node'), function(g){
+      g.classList.remove('on','skip');
+      if (nodes[g.dataset.id]) g.classList.add(nodes[g.dataset.id]);
+    });
+    [].forEach.call(svg.querySelectorAll('.edge,.elbl'), function(e){
+      e.classList.toggle('on', e.dataset.keys.split(' ').some(function(k){ return edges[k]; }));
+    });
+    $('bigOut').textContent = out.big; $('smallOut').textContent = out.small || '';
+    $('banner').className = 'banner'+({vm:' vm', closed:' closed', bad:' bad'}[out.kind] || '');
+    var ol = $('traceList'); ol.innerHTML = '';
+    trace.forEach(function(t){
+      var li = document.createElement('li');
+      var s = document.createElement('span'); s.className = 'st'; s.textContent = t[0]+': ';
+      li.appendChild(s); li.appendChild(document.createTextNode(t[1])); ol.appendChild(li);
+    });
+  }
+
+  /* ---------- controls ---------- */
+  var controls = $('controls'), used = [], ctl = {};   // ctl[key] = {el, flows:Set-ish}
+  function flowKeys(f){
+    var keys = {};
+    function addExpr(x){
+      if (!x) return;
+      if (x.any) x.any.forEach(addExpr); else if (x.all) x.all.forEach(addExpr); else if (x.not) addExpr(x.not);
+      else if (x['switch']) keys['sw:'+x['switch']] = 1;
+      else if (x.timetable) addTT(x.timetable);
+      else if (x.flag) keys['f:'+x.flag] = 1;
+    }
+    function addTT(name){
+      var t = (SPEC.timetables||{})[name] || {kind:'manual'};
+      if (t.kind === 'weekly'){ keys.dow = keys.time = 1; if (t.dates) keys['tt:'+name] = 1; }
+      else keys['tt:'+name] = 1;
+      (t.override||[]).forEach(function(o){ keys['sw:'+o['switch']] = 1; });
+    }
+    function addMembers(n){
+      var g = n.group ? (SPEC.groups||{})[n.group] : null;
+      (n.members || (g ? g.members : []) || []).forEach(function(m){
+        keys['m:'+(typeof m === 'string' ? m : m.name)] = 1;
+        if (typeof m !== 'string') addExpr(m.when);
+      });
+    }
+    Object.keys(f.nodes).forEach(function(id){
+      var n = f.nodes[id];
+      switch (n.type){
+        case 'switch': keys['sw:'+n['switch']] = 1; break;
+        case 'timetable': addTT(n.timetable); break;
+        case 'condition': if (n['if']) addExpr(n['if']); else keys['c:'+id] = 1; break;
+        case 'decide': (n.cases||[]).forEach(function(c){ if (c.timetable) addTT(c.timetable); else addExpr(c.when); }); break;
+        case 'ring': addMembers(n); keys['pick:'+id] = 1; break;
+        case 'queue': addMembers(n); keys['q:'+id] = 1; keys['qa:'+id] = 1; if (n.pick !== false) keys['pick:'+id] = 1; break;
+        case 'ivr': keys['ivr:'+id] = 1; break;
+        case 'dial_external': keys['ext:'+id] = 1; break;
+      }
+    });
+    return keys;
+  }
+  var FK = FLOWS.map(flowKeys);
+  function anyFlowHas(k){ return FK.some(function(m){ return m[k]; }); }
+  function mkFieldset(legend){
+    var fs = document.createElement('fieldset');
+    var lg = document.createElement('legend'); lg.textContent = legend; fs.appendChild(lg);
+    controls.appendChild(fs); return fs;
+  }
+  var uid = 0;
+  function mkSelect(fs, key, label, options){
+    var d = document.createElement('div'); d.className = 'field';
+    var id = 'c'+(uid++);
+    var l = document.createElement('label'); l.setAttribute('for', id); l.textContent = label;
+    var s = document.createElement('select'); s.id = id;
+    options.forEach(function(o){ var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; s.appendChild(op); });
+    s.addEventListener('change', function(){ S[key] = s.value; clearPreset(); run(); });
+    d.appendChild(l); d.appendChild(s); fs.appendChild(d);
+    ctl[key] = {wrap:d, set:function(v){ s.value = v; }, kind:'select'};
+  }
+  function mkCheck(fs, key, label){
+    var d = document.createElement('div'); d.className = 'check';
+    var id = 'c'+(uid++);
+    var c = document.createElement('input'); c.type = 'checkbox'; c.id = id;
+    var l = document.createElement('label'); l.setAttribute('for', id); l.textContent = label;
+    c.addEventListener('change', function(){ S[key] = c.checked; clearPreset(); run(); });
+    d.appendChild(c); d.appendChild(l); fs.appendChild(d);
+    ctl[key] = {wrap:d, set:function(v){ c.checked = !!v; }, kind:'check'};
+  }
+  function mkRadios(fs, key, label, options, hint){
+    var d = document.createElement('div'); d.className = 'radioset';
+    var t = document.createElement('div'); t.className = 'field'; t.style.marginBottom = '4px';
+    var sp = document.createElement('span'); sp.className = 'lbl2'; sp.textContent = label; t.appendChild(sp); d.appendChild(t);
+    var r = document.createElement('div'); r.className = 'radios'; r.setAttribute('role','radiogroup'); r.setAttribute('aria-label', label);
+    var name = 'r'+(uid++), inputs = [];
+    options.forEach(function(o){
+      var lb = document.createElement('label'), i = document.createElement('input');
+      i.type = 'radio'; i.name = name; i.value = o[0];
+      i.addEventListener('change', function(){ if (i.checked){ S[key] = i.value; clearPreset(); run(); } });
+      lb.appendChild(i); lb.appendChild(document.createTextNode(' '+o[1])); r.appendChild(lb); inputs.push(i);
+    });
+    d.appendChild(r);
+    if (hint){ var hn = document.createElement('div'); hn.className = 'hint'; hn.textContent = hint; d.appendChild(hn); }
+    fs.appendChild(d);
+    ctl[key] = {wrap:d, set:function(v){ inputs.forEach(function(i){ i.checked = i.value === v; }); }, kind:'radio'};
+  }
+
+  var DEFAULTS = {dow:'2', time:'10:00'};
+  if (FLOWS.length > 1){
+    var fs0 = mkFieldset('Called number');
+    var d0 = document.createElement('div'); d0.className = 'field';
+    var s0 = document.createElement('select'); s0.id = 'flowPick'; s0.setAttribute('aria-label','Called number');
+    FLOWS.forEach(function(f, i){ var o = document.createElement('option'); o.value = i; o.textContent = f.label; s0.appendChild(o); });
+    s0.addEventListener('change', function(){ selectFlow(+s0.value); clearPreset(); run(); });
+    d0.appendChild(s0); fs0.appendChild(d0);
+  }
+  var fsWhen = mkFieldset('When the call arrives');
+  if (anyFlowHas('dow')){
+    var inl = document.createElement('div'); inl.className = 'inline'; fsWhen.appendChild(inl);
+    mkSelect(inl, 'dow', 'Day', [['1','Monday'],['2','Tuesday'],['3','Wednesday'],['4','Thursday'],['5','Friday'],['6','Saturday'],['0','Sunday']]);
+    var dt = document.createElement('div'); dt.className = 'field';
+    var tl = document.createElement('label'); tl.setAttribute('for','time'); tl.textContent = 'Time';
+    var ti = document.createElement('input'); ti.type = 'time'; ti.id = 'time';
+    ti.addEventListener('input', function(){ S.time = ti.value || '10:00'; clearPreset(); run(); });
+    dt.appendChild(tl); dt.appendChild(ti); inl.appendChild(dt);
+    ctl.time = {wrap:dt, set:function(v){ ti.value = v; }, kind:'time'};
+    ctl.dow.wrap = inl;
+  }
+  Object.keys(SPEC.timetables||{}).forEach(function(name){
+    var t = SPEC.timetables[name];
+    if (!anyFlowHas('tt:'+name)) return;
+    mkCheck(fsWhen, 'tt:'+name, t.label || (t.kind === 'weekly' ? 'Today matches a date entry in '+q(name) : 'Today is in '+q(name)));
+    DEFAULTS['tt:'+name] = false;
+  });
+  var fsSw = mkFieldset('Switches on the phones and in x-bees');
+  Object.keys(SPEC.switches||{}).forEach(function(name){
+    var d = SPEC.switches[name];
+    if (!anyFlowHas('sw:'+name)) return;
+    mkRadios(fsSw, 'sw:'+name, d.label || name, d.states, d.note);
+    DEFAULTS['sw:'+name] = d['default'] || d.states[0][0];
+  });
+  Object.keys(SPEC.flags||{}).forEach(function(name){
+    if (!anyFlowHas('f:'+name)) return;
+    mkCheck(fsSw, 'f:'+name, SPEC.flags[name]); DEFAULTS['f:'+name] = false;
+  });
+  var fsPeople = mkFieldset(SPEC.people_legend || 'Phones');
+  Object.keys(SPEC.people||{}).forEach(function(name){
+    if (!anyFlowHas('m:'+name)) return;
+    mkSelect(fsPeople, 'm:'+name, plabel(name), [['free','Free'],['busy','On a call'],['offline','Offline']]);
+    DEFAULTS['m:'+name] = 'free';
+  });
+  var fsAct = mkFieldset('What the caller and staff do');
+  FLOWS.forEach(function(f, fi){
+    Object.keys(f.nodes).forEach(function(id){
+      var n = f.nodes[id], t = n.title;
+      var multi = FLOWS.length > 1;
+      if (n.type === 'ring'){ mkCheck(fsAct, 'pick:'+id, n.pick_label || ('A free phone picks up at '+q(t))); DEFAULTS['pick:'+id] = true; }
+      if (n.type === 'queue'){
+        var mx = +n.max_len || 0, opts = [];
+        for (var i=0;i<=Math.max(mx+1, 4);i++) opts.push([String(i), String(i)]);
+        mkSelect(fsAct, 'q:'+id, n.count_label || ('Callers already waiting in '+q(t)), opts); DEFAULTS['q:'+id] = '0';
+        if (n.pick !== false){ mkCheck(fsAct, 'pick:'+id, n.pick_label || ('A free member picks up at '+q(t))); DEFAULTS['pick:'+id] = true; }
+        if (n.max_wait || n.wait_label){ mkCheck(fsAct, 'qa:'+id, n.wait_label || ('Someone answers during the '+(n.max_wait ? n.max_wait+' s ' : '')+'queue wait')); }
+        DEFAULTS['qa:'+id] = false;
+      }
+      if (n.type === 'ivr'){
+        var o = [['','No key (times out)']];
+        Object.keys(n.go||{}).forEach(function(k){ if (k !== 'timeout') o.push([k, (k.length > 2 ? 'Dials ' : 'Press ')+k+((n.labels||{})[k] ? ': '+n.labels[k] : '')]); });
+        mkSelect(fsAct, 'ivr:'+id, n.key_label || ('Caller at '+q(t)), o); DEFAULTS['ivr:'+id] = '';
+      }
+      if (n.type === 'dial_external'){ mkCheck(fsAct, 'ext:'+id, n.answer_label || ((n.target || t)+' answers')); DEFAULTS['ext:'+id] = false; }
+      if (n.type === 'condition' && !n['if']){ mkCheck(fsAct, 'c:'+id, n.label || t); DEFAULTS['c:'+id] = false; }
+    });
+  });
+  [fsWhen, fsSw, fsPeople, fsAct].forEach(function(fs){ if (fs.children.length < 2) fs.remove(); });
+
+  function selectFlow(i){
+    flowIdx = i;
+    if ($('flowPick')) $('flowPick').value = i;
+    svgs.forEach(function(s, j){ s.style.display = j === i ? '' : 'none'; });
+    var keys = FK[i];
+    Object.keys(ctl).forEach(function(k){ ctl[k].wrap.hidden = !(keys[k] || (k === 'time' && keys.dow)); });
+    [fsWhen, fsSw, fsPeople, fsAct].forEach(function(fs){
+      if (!fs.parentNode) return;
+      fs.hidden = ![].slice.call(fs.children).some(function(c){ return c.tagName !== 'LEGEND' && !c.hidden; });
+    });
+    var note = flow().note;
+    $('flowNote').hidden = !note; $('flowNote').textContent = note || '';
+  }
+  function setAll(state){
+    S = {};
+    Object.keys(DEFAULTS).forEach(function(k){ S[k] = DEFAULTS[k]; });
+    Object.keys(state||{}).forEach(function(k){ S[k] = state[k]; });
+    S.dow = String(S.dow); S.time = S.time || '10:00';
+    Object.keys(ctl).forEach(function(k){ if (S[k] !== undefined) ctl[k].set(S[k]); });
+  }
+  var presetBtns = [];
+  function clearPreset(){ presetBtns.forEach(function(b){ b.setAttribute('aria-pressed','false'); }); }
+  function applyPreset(p, btn){
+    if (p.flow !== undefined){
+      var fi = FLOWS.findIndex(function(f){ return f.id === p.flow; });
+      if (fi > -1) selectFlow(fi);
+    }
+    setAll(p.state); clearPreset(); if (btn) btn.setAttribute('aria-pressed','true'); run();
+  }
+  (SPEC.presets||[]).forEach(function(p){
+    var b = document.createElement('button'); b.className = 'pbtn'; b.type = 'button'; b.textContent = p.label;
+    b.setAttribute('aria-pressed','false');
+    if (p.hint) b.title = p.hint;
+    b.addEventListener('click', function(){ applyPreset(p, b); });
+    $('presets').appendChild(b); presetBtns.push(b);
+  });
+  if (!presetBtns.length) $('presets').remove();
+
+  var host = $('svgHost');
+  FLOWS.forEach(function(f, i){ var s = buildSvg(f, i); host.appendChild(s); svgs.push(s); });
+  selectFlow(0);
+  if (SPEC.presets && SPEC.presets.length) applyPreset(SPEC.presets[0], presetBtns[0]); else { setAll({}); run(); }
+
+  /* test hook: run a preset by index and report the outcome (used by the skill's browser check) */
+  window.flowSim = {
+    presets: function(){ return (SPEC.presets||[]).map(function(p){ return p.label; }); },
+    run: function(i){ presetBtns[i].click(); return {banner:$('bigOut').textContent, path:[].map.call(svgs[flowIdx].querySelectorAll('.node.on,.node.skip'), function(g){ return g.dataset.id; })}; }
+  };
+
+  /* ---------- checklists ---------- */
+  function store(key){
+    return {
+      get:function(){ try{ return JSON.parse(localStorage.getItem(key)||'{}'); }catch(e){ return {}; } },
+      set:function(v){ try{ localStorage.setItem(key, JSON.stringify(v)); }catch(e){} }
+    };
+  }
+  var CHIP = {o:'Open', v:'Verify', d:'Done', c:'To create', x:'Problem'};
+  function buildList(kind, data){
+    var root = $(kind+'List'); if (!root) return;
+    var key = (SPEC.storage_key || 'flowsim')+'-'+kind, st = store(key), state = st.get(), total = 0, boxes = [];
+    data.forEach(function(grp, gi){
+      var h3 = document.createElement('h3'); h3.textContent = grp.g; root.appendChild(h3);
+      grp.i.forEach(function(it, ii){
+        var id = key+'-'+gi+'-'+ii; total++;
+        var text = Array.isArray(it) ? it[1] : it, tag = Array.isArray(it) ? it[0] : null;
+        var d = document.createElement('div'); d.className = 'item';
+        var cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = id; cb.checked = !!state[id];
+        var lb = document.createElement('label'); lb.setAttribute('for', id); lb.textContent = text;
+        if (tag){ var c = document.createElement('span'); c.className = 'chip '+tag; c.textContent = CHIP[tag] || tag; lb.appendChild(c); }
+        d.appendChild(cb); d.appendChild(lb); root.appendChild(d); boxes.push([cb, d]);
+        cb.addEventListener('change', function(){ state[id] = cb.checked; st.set(state); update(); });
+      });
+    });
+    function update(){
+      var n = 0; boxes.forEach(function(b){ b[1].classList.toggle('done', b[0].checked); if (b[0].checked) n++; });
+      $(kind+'Bar').style.width = (total ? Math.round(n/total*100) : 0)+'%';
+      $(kind+'Count').textContent = n+' of '+total+' done';
+    }
+    $(kind+'Reset').addEventListener('click', function(){
+      state = {}; st.set(state); boxes.forEach(function(b){ b[0].checked = false; }); update();
+    });
+    update();
+  }
+  buildList('uat', SPEC.uat || []);
+  buildList('open', SPEC.open || []);
+})();
+</script>
+</body>
+</html>

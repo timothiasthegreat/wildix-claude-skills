@@ -1,0 +1,15 @@
+# Customer data — autotrace archives and WMS backups contain phone numbers, IPs, call records and credentials. Never commit.
+*.tar.gz
+*_wms_b_*/
+autotrace_logs-*/
+*.pcap
+*.pcap[0-9]*
+filtered_report.txt
+cases/
+
+# Python
+__pycache__/
+*.pyc
+
+# Skill eval workspaces (regenerated)
+*-workspace/

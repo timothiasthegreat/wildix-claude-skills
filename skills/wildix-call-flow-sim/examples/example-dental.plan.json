@@ -1,0 +1,211 @@
+{
+  "title": "Example Dental Clinic: main number build plan",
+  "subtitle": "Draft v1 from the client's replies. Try the simulator to see which path a call takes, then use the build tabs when you configure WMS.",
+  "version": "1",
+  "default_presets": false,
+
+  "timetables": {
+    "Business Hours": {"hours": {"mon": "08:00-19:00", "tue-thu": "08:00-16:00", "fri": "07:00-15:00"}},
+    "Stat Holidays": {"kind": "dates", "label": "Today is a stat holiday"},
+    "Long Closures": {"kind": "dates", "label": "Inside a long closure (summer or winter)"},
+    "Laptop Days": {"hours": {"mon": "08:00-19:00", "thu": "08:00-16:00"}}
+  },
+  "switches": {
+    "Meeting Mode": {"states": [["off", "Off"], ["on", "On"]], "label": "Meeting Mode"},
+    "Office Mode": {"states": [["follow", "Follow schedule"], ["in", "Force in hours"], ["out", "Force out of hours"]]},
+    "Laptop": {"states": [["follow", "Follow schedule (Mon and Thu)"], ["on", "Force on"], ["off", "Force off"]]}
+  },
+  "people_legend": "Front desk phones",
+  "people": {
+    "Admin A": {},
+    "Admin B": {},
+    "Laptop user": {}
+  },
+  "groups": {
+    "Front Desk Ring": {"members": ["Admin A", "Admin B",
+      {"name": "Laptop user", "when": {"any": [{"switch": "Laptop", "is": "on"},
+                                               {"all": [{"switch": "Laptop", "is": "follow"}, {"timetable": "Laptop Days"}]}]}}]},
+    "Front Desk Queue": {"members": ["Admin A", "Admin B",
+      {"name": "Laptop user", "when": {"any": [{"switch": "Laptop", "is": "on"},
+                                               {"all": [{"switch": "Laptop", "is": "follow"}, {"timetable": "Laptop Days"}]}]}}]}
+  },
+
+  "flows": [{
+    "id": "main",
+    "label": "Main number",
+    "start": "start",
+    "nodes": {
+      "start": {"type": "start", "title": "Patient calls main number", "next": "meetq"},
+      "meetq": {"type": "switch", "switch": "Meeting Mode", "title": "Meeting Mode on?", "sub": ["Manual switch"],
+                "step": "Step 1", "go": {"on": "meetmsg", "off": "openq"}, "labels": {"on": "Yes", "off": "No"},
+                "say": {"on": "Meeting Mode is on, so the call goes to the meeting message.", "off": "Meeting Mode is off."}},
+      "openq": {"type": "decide", "title": "Open right now?", "sub": ["Force switch, closures, hours"],
+                "cases": [
+                  {"when": {"switch": "Office Mode", "is": "in"}, "go": "open", "step": "Step 2",
+                   "say": "Office Mode is Force In Hours, so the clinic is treated as open regardless of the schedule."},
+                  {"when": {"switch": "Office Mode", "is": "out"}, "go": "closed", "step": "Step 3",
+                   "say": "Office Mode is Force Out of Hours, so the after-hours message plays."},
+                  {"timetable": "Long Closures", "go": "closure", "step": "Step 4",
+                   "say": "The date falls inside a long closure, so the long-closure message with dates plays."},
+                  {"timetable": "Stat Holidays", "go": "closed", "step": "Step 5",
+                   "say": "Today is a stat holiday, so the after-hours message plays."},
+                  {"timetable": "Business Hours", "match": false, "go": "closed", "step": "Step 6"}
+                ],
+                "else": "open", "else_step": "Step 6", "else_say": "Inside business hours, so the call continues to the front desk.",
+                "go": {"open": "ring", "closed": "closedmsg", "closure": "closedmsg"},
+                "labels": {"open": "Yes", "closed": "No", "closure": "No"}},
+      "ring": {"type": "ring", "title": "Ring front desk", "sub": ["Call All, about 4 rings"], "group": "Front Desk Ring",
+               "strategy": "Call All", "timeout": 24, "skip_if_none_free": true, "step": "Steps 7-8",
+               "pick_label": "A free phone is picked up during the ring stage",
+               "note": "Skipping needs the free-member count jump verified in WMS.",
+               "go": {"no_answer": "hold"}},
+      "hold": {"type": "play", "title": "Holding message", "sub": ["You're in line"], "step": "Step 9",
+               "text": "Our team is currently assisting other patients...", "next": "queue"},
+      "queue": {"type": "queue", "title": "Waiting queue", "sub": ["Max 3, 90 sec, music"], "group": "Front Desk Queue",
+                "max_len": 3, "max_wait": 90, "pick": false, "music": "hold music", "step": "Steps 10-11",
+                "count_label": "Callers already waiting in the queue",
+                "wait_label": "Someone answers during the 90 second queue wait",
+                "go": {"timeout": "vm"}},
+      "meetmsg": {"type": "play", "title": "Meeting message", "sub": ["Takes a voicemail"], "step": "Step 12",
+                  "say": {"next": "Meeting message plays, then the caller leaves a voicemail. No press 0 option."}, "next": "vm"},
+      "closedmsg": {"type": "play", "title": "Closed message", "sub": ["After hours, weekends", "Stat holiday, closure"],
+                    "step": "Steps 13-14", "say": {"next": "The after-hours or long-closure greeting plays and offers press 0 for urgent concerns."},
+                    "next": "menu"},
+      "menu": {"type": "ivr", "title": "Urgent menu", "sub": ["Press 0 for urgent line"], "step": "Steps 13-14",
+               "key_label": "Caller presses (closed messages only)", "labels": {"0": "urgent line", "timeout": "No key"},
+               "go": {"0": "urgent", "timeout": "vm"}},
+      "urgent": {"type": "dial_external", "title": "Call urgent line", "target": "the urgent contact's cell", "trunk": "CLASSOUND",
+                 "timeout": 25, "step": "Step 15", "answer_label": "Urgent line answers",
+                 "answered_text": "Caller connected to urgent line",
+                 "answered_small": "Outbound leg uses the CLASSOUND trunk. The caller hears the greeting first, then ringing.",
+                 "go": {"no_answer": "vm"}},
+      "vm": {"type": "voicemail", "title": "Shared voicemail", "sub": ["Voicemail to email"], "step": "Step 11",
+             "mailbox": "Front Desk", "email": "info@example-clinic.example"}
+    }
+  }],
+
+  "presets": [
+    {"label": "Tuesday 10:00", "state": {"dow": 2, "time": "10:00"}},
+    {"label": "Both on calls", "state": {"dow": 3, "time": "11:30", "m:Admin A": "busy", "m:Admin B": "busy", "pick:ring": false, "qa:queue": true}},
+    {"label": "Queue full", "state": {"dow": 5, "time": "09:15", "m:Admin A": "busy", "m:Admin B": "busy", "pick:ring": false, "q:queue": "3"}},
+    {"label": "Monday with laptop", "state": {"dow": 1, "time": "16:30", "m:Admin A": "busy"}},
+    {"label": "Saturday evening", "state": {"dow": 6, "time": "19:00", "ivr:menu": "0", "ext:urgent": true}},
+    {"label": "Staff meeting", "state": {"dow": 4, "time": "12:00", "sw:Meeting Mode": "on"}},
+    {"label": "Winter closure", "state": {"dow": 3, "time": "10:00", "tt:Long Closures": true, "ivr:menu": "0"}},
+    {"label": "Internet down", "state": {"dow": 2, "time": "10:00", "m:Admin A": "offline", "m:Admin B": "offline", "m:Laptop user": "offline"}}
+  ],
+
+  "tabs": {
+    "build": [
+      {"h2": "Inputs from the client"},
+      {"table": [
+        ["Hours", "Mon 08:00 to 19:00. Tue, Wed, Thu 08:00 to 16:00. Fri 07:00 to 15:00. Sat, Sun and stat holidays closed. No lunch closure."],
+        ["Voicemail and fax in", "info@example-clinic.example for both"],
+        ["Urgent line (press 0)", "Urgent contact's cell. Keep it private: never read it out."],
+        ["Front desk members", "Admin A and Admin B [o: Open: confirm names and extensions]"],
+        ["Laptop", "Rings automatically Mon and Thu, with manual override [o: Open: existing login or separate user?]"],
+        ["Routing until port", "Inbound routes point at the temporary numbers (a later task moves them to the ported numbers)"]
+      ]},
+      {"h2": "Objects to create"},
+      {"cols": [
+        [
+          {"h3": "Timetables"},
+          {"list": ["`Business Hours` as above",
+                    "`Stat Holidays`, full-day dates for the year [o: Open: province, Alberta assumed]",
+                    "`Long Closures`, one date range per closure [o: Open: dates]",
+                    "`Laptop Days`, Mon and Thu during business hours"]},
+          {"h3": "Switches (phone keys and x-bees Favorites)"},
+          {"list": ["`Office Mode`, 3-state: Follow Schedule, Force In Hours, Force Out of Hours",
+                    "`Meeting Mode`, 2-state",
+                    "`Laptop`, 3-state: Follow Schedule, Force On, Force Off [v: Verify: usable in the dialplan]"]},
+          {"h3": "Voicemail"},
+          {"p": "Shared mailbox `Front Desk`, voicemail to email to info@example-clinic.example."}
+        ],
+        [
+          {"h3": "Call groups"},
+          {"list": ["`Front Desk Ring`: Call All, members Admin A and Admin B. Call waiting off (default), so a busy phone is skipped and only the free phone rings.",
+                    "`Front Desk Queue`: same members. Max length 3, announce frequency off, hold music chosen in the dialplan. The group timeout of 90 s is the total wait before the next step."]},
+          {"h3": "Sound files (client wording is in the ticket)"},
+          {"list": ["Queue message", "After-hours message with press 0 for urgent concerns",
+                    "Long-closure message with MM-DD-YYYY dates, re-recorded for each closure",
+                    "Meeting message, no press 0", "Hold music: default or the client's own file"]},
+          {"h3": "Call park"},
+          {"p": "One Park Orbit, return timeout 45 s, rings back to the parker only. Both desks get a Park Location key and a call pickup key."}
+        ]
+      ]},
+      {"h2": "Main number dialplan (inbound)"},
+      {"steps": [
+        {"group": "Mode and schedule checks"},
+        "If switch `Meeting Mode` is on, go to MEETING.",
+        "If `Office Mode` is Force In Hours, go to OPEN.",
+        "If `Office Mode` is Force Out of Hours, go to CLOSED.",
+        "Verify timetable `Long Closures`. On a match, go to CLOSURE.",
+        "Verify timetable `Stat Holidays`. On a match, go to CLOSED.",
+        "Verify timetable `Business Hours`. No match goes to CLOSED. A match continues to OPEN.",
+        {"group": "OPEN"},
+        "Jump past the ring stage if `Front Desk Ring` has 0 free members [v: Verify: free-count function, and unregistered phones count as not free]",
+        "Call group `Front Desk Ring`, timeout 24 s (about 4 rings). If answered, done. The laptop joins on Mon and Thu.",
+        "Play sound: queue message.",
+        "Call group `Front Desk Queue`: max length 3, hold music, timeout 90 s. A 4th caller falls through to the next step.",
+        "Go to voicemail `Front Desk`.",
+        {"group": "Other branches"},
+        "**MEETING**: Play sound (meeting message), then Go to voicemail `Front Desk`.",
+        "**CLOSURE**: IVR with the long-closure greeting. Option 0 goes to URGENT. No key or timeout goes to voicemail.",
+        "**CLOSED**: IVR with the after-hours greeting. Same options as CLOSURE.",
+        "**URGENT**: Dial the trunk to the urgent contact's cell, about 25 s. No answer goes to voicemail."
+      ]},
+      {"note": "IVR and urgent dial-out: [v] the IVR accepts 0 during the greeting, and the call class and ACL allow external dial-out to the urgent contact's number. If not, option 0 fails silently."}
+    ],
+    "extra": [
+      {"title": "Phones, fax, outage", "blocks": [
+        {"cols": [
+          [
+            {"h2": "Phones and x-bees"},
+            {"list": ["Keys on both desk phones: Office Mode, Meeting Mode, Laptop, Park Location, call pickup, and Line keys.",
+                      "x-bees Favorites show the switch states, so staff can see which mode is active.",
+                      "No hold-reminder beep exists. Train staff on park and pickup."]}
+          ],
+          [
+            {"h2": "Internet outage"},
+            {"list": ["Desk phones lose registration, so the group has no free members. With the free-count jump, callers hear the queue message and wait up to 90 s before voicemail.",
+                      "[v] Test it. If it's a poor experience, add a jump to voicemail when both members are unavailable."]}
+          ]
+        ]}
+      ]}
+    ]
+  },
+
+  "uat": [
+    {"g": "Office hours", "i": [
+      "Both desk phones ring together and the first to answer takes the call",
+      "One phone busy: only the free phone rings",
+      "Both busy: caller hears the queue message and hold music, no position announcements",
+      "4th caller goes to voicemail instead of the queue",
+      "90 second queue timeout reaches voicemail",
+      "Laptop rings automatically on Mon and Thu",
+      "Laptop manual Force Off and Force On both work"
+    ]},
+    {"g": "Closed and modes", "i": [
+      "Evening, Saturday and a stat holiday date play the after-hours message",
+      "Press 0 rings the urgent line; no key or no answer goes to voicemail",
+      "Long closure plays the dated message with press 0",
+      "Meeting Mode plays the meeting message with no press 0",
+      "Force In and Force Out work, and the key state is visible on both phones and in x-bees"
+    ]}
+  ],
+  "open": [
+    {"g": "Needed from the client or you", "i": [
+      ["o", "Confirm front desk names and extensions (Admin A and Admin B)"],
+      ["o", "Laptop: existing user's x-bees login, or a separate user and licence?"],
+      ["o", "Summer and winter closure dates, and a new recording for each closure"],
+      ["o", "Province for the stat holiday list (Alberta assumed)"]
+    ]},
+    {"g": "Verify in WMS or with Wildix", "i": [
+      ["v", "A 3-state switch can be tested in the dialplan"],
+      ["v", "Laptop timetable membership combined with a manual override"],
+      ["v", "Free-member count jump works, and unregistered phones count as not free"],
+      ["v", "IVR accepts 0 during the greeting"],
+      ["v", "External dial-out to the urgent contact's number allowed by call class and ACL"]
+    ]}
+  ]
+}
