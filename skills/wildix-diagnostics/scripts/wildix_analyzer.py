@@ -436,6 +436,21 @@ _SIP_START_RE = re.compile(
 _CALLID_RE = re.compile(r'^(?:Call-ID|i)\s*:\s*(\S+)', re.IGNORECASE | re.MULTILINE)
 _CSEQ_RE   = re.compile(r'^CSeq\s*:\s*(.+)$', re.IGNORECASE | re.MULTILINE)
 
+# Digest auth headers: mask the per-challenge/per-response values, keep username, realm, uri,
+# algorithm and qop visible because they're what you need to diagnose 401/403/407 loops.
+_AUTH_HDR_RE = re.compile(
+    r'^(?:Proxy-)?Authorization[ \t]*:.*$|^(?:WWW|Proxy)-Authenticate[ \t]*:.*$'
+    r'|^(?:Proxy-)?Authentication-Info[ \t]*:.*$', re.IGNORECASE | re.MULTILINE)
+_DIGEST_SECRET_RE = re.compile(
+    r'\b(response|nonce|cnonce|opaque|nextnonce|rspauth)(\s*=\s*)("[^"]*"|[^\s,]+)', re.IGNORECASE)
+
+def mask_sip_auth(text):
+    """Replace digest response/nonce/cnonce/opaque values in SIP auth headers with [REDACTED]."""
+    def mask_param(m):
+        value = '"[REDACTED]"' if m.group(3).startswith('"') else '[REDACTED]'
+        return m.group(1) + m.group(2) + value
+    return _AUTH_HDR_RE.sub(lambda h: _DIGEST_SECRET_RE.sub(mask_param, h.group(0)), text)
+
 def iter_pcap_packets(path):
     """Yield (ts_float, linktype, frame_bytes) for every record in a pcap file."""
     with open(path, 'rb') as f:
@@ -531,12 +546,12 @@ def _looks_like_rtcp(p):
 RTP_PT_NAMES = {0: 'PCMU/G.711u', 3: 'GSM', 4: 'G.723', 8: 'PCMA/G.711a', 9: 'G.722',
                 18: 'G.729', 101: 'telephone-event (DTMF)'}
 
-def pcap_to_text(pcap_path, user_tz, user_tz_display):
+def pcap_to_text(pcap_path, user_tz, user_tz_display, redact=True):
     """
     Decode a filtered pcap into readable text:
       1. A one-line-per-message SIP ladder (time, direction, request/response, Call-ID)
       2. An RTP stream summary (packets, duration, codec, sequence gaps) per 5-tuple
-      3. Full SIP message bodies (headers + SDP)
+      3. Full SIP message bodies (headers + SDP), with digest auth values masked unless redact=False
     All timestamps are shown in the user's timezone.
     """
     sip_msgs, rtp, rtcp_count, undecoded, tls_count = [], {}, 0, 0, 0
@@ -619,10 +634,11 @@ def pcap_to_text(pcap_path, user_tz, user_tz_display):
         out.append("")
 
     # ── Full SIP messages ──
-    out.append("## FULL SIP MESSAGES")
+    out.append("## FULL SIP MESSAGES" + ("" if redact else " (digest auth values NOT masked: --no-redact)"))
     for ts, p, text in sip_msgs:
         out.append(f"--- {fmt(ts)}  {p['src']}:{p['sport']} -> {p['dst']}:{p['dport']} ({p['proto']}) ---")
-        out.append(text.replace('\r\n', '\n').rstrip())
+        text = text.replace('\r\n', '\n').rstrip()
+        out.append(mask_sip_auth(text) if redact else text)
         out.append("")
     return '\n'.join(out)
 
@@ -816,7 +832,8 @@ def run(args):
     # ── Dump SIP content from filtered pcaps ──────────────────────────────────
     pcap_text_sections = []
     for out_path, orig_name, count in pcap_outputs:
-        text = pcap_to_text(out_path, user_tz, args.user_tz or system_tz_str)
+        text = pcap_to_text(out_path, user_tz, args.user_tz or system_tz_str,
+                            redact=not args.no_redact)
         pcap_text_sections.append((orig_name, out_path.name, count, text))
 
     # ── Write filtered report ─────────────────────────────────────────────────
@@ -1047,6 +1064,9 @@ Examples:
         help='Filter by PBX username (repeatable)')
     p.add_argument('--output', default='./wildix_filtered',
         help='Output directory for filtered files (default: ./wildix_filtered)')
+    p.add_argument('--no-redact', action='store_true',
+        help="Show digest response/nonce/cnonce/opaque values in the report's full SIP messages "
+             '(masked by default; the filtered .pcap files are never altered)')
 
     args = p.parse_args()
     run(args)
