@@ -200,3 +200,7 @@ Issues and pull requests are welcome, especially:
 - log patterns worth adding to the guides
 
 If a change makes the parser read something new from the backup, extend the redaction to match, and add a test with a fake secret proving it doesn't reach the output. **Never attach real backups, autotraces or unredacted output.** Reproduce problems with the synthetic fixture.
+
+## License
+
+[MIT](LICENSE)
